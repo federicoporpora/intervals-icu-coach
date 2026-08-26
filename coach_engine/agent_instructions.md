@@ -128,21 +128,85 @@ When an athlete reports fatigue, skips a workout, records adverse recovery marke
 
 ---
 
-## 4. Communication & Coaching Standards
+## 4. Intervals.icu Workout Syntax Rules & Formatting Guidelines
+
+When creating, updating, or presenting structured workouts for Intervals.icu, **strictly adhere to the following syntax rules**:
+
+### A. Units of Time vs Distance
+1. **`m` means MINUTES, not meters**:
+   - `15m` = 15 minutes.
+   - ❌ **NEVER write `1000m` or `400m` for distance**: Intervals.icu parses `1000m` as 1000 minutes (16.6 hours!).
+   - ✅ **For distance, always use `km`**: Write `1km`, `0.4km`, `1.5km`, `2km`, `0.1km`.
+2. **`s` means SECONDS**: `20s`, `30s`, `45s`.
+3. **`h` means HOURS**: `1h`, `1h30m`.
+
+### B. Repetitions & Loops Syntax
+1. ❌ **NEVER write inline repeats inside a bullet**:
+   - Bad: `- 4x 20s Z5 HR / 40s Z1 HR` (Causes parsing failure or missing steps).
+2. ✅ **ALWAYS specify the repetition count in the section header or a dedicated line**:
+   - Format:
+     ```
+     Allunghi 4x
+     - 20s Z5 HR 3:45-3:55 min/km Allungo
+     - 40s Z1 HR 6:00-6:30 min/km Souplesse
+
+     Main Set 5x
+     - 1km Z5 HR 4:05-4:15 min/km Ripetuta VO2max
+     - 2m Z1 HR 6:00-6:30 min/km Recupero souplesse
+     ```
+
+### C. Zone Classification & Chart Coloring (Preventing White Gaps)
+1. Every single step must include an explicit **HR Zone token** (`Z1 HR`, `Z2 HR`, `Z3 HR`, `Z4 HR`, `Z5 HR`) and/or **Pace Zone token** (`Z2 Pace`, `Z4 Pace`, etc.) alongside exact targets.
+2. Example of a fully color-classified workout:
+   ```
+   Warmup
+   - 15m Z1 HR 5:50-6:10 min/km Riscaldamento (<145 bpm)
+
+   Allunghi 4x
+   - 20s Z5 HR 3:45-3:55 min/km Allungo
+   - 40s Z1 HR 6:00-6:30 min/km Souplesse
+
+   Main Set 5x
+   - 1km Z5 HR 4:05-4:15 min/km Ripetuta VO2max (189-204 bpm)
+   - 2m Z1 HR 6:00-6:30 min/km Recupero Souplesse (<145 bpm)
+
+   Cooldown
+   - 10m Z1 HR 5:50-6:15 min/km Defaticamento (<145 bpm)
+   ```
+
+### D. Strength & Conditioning Workouts (Suunto / Garmin Compatibility)
+1. Always start `WeightTraining` or `Other` workouts with structured duration/HR steps so watch guide APIs (Suunto Guides / Garmin) receive valid step collections:
+   ```
+   Warmup
+   - 5m Z1 HR Mobilità Articolare (<135 bpm)
+
+   Main Set
+   - 20m Z1 HR Circuito Forza Gambe (130-145 bpm)
+
+   Cooldown
+   - 5m Z1 HR Stretching & Allungamento (<130 bpm)
+
+   Esercizi:
+   1. Squat Bulgari: 3x10 per gamba
+   2. ...
+   ```
+
+### E. Weekly Estimated Distance & Step Distance Formatting
+To ensure Intervals.icu computes and displays the **total weekly estimated kilometers (e.g., ~41 km, ~47 km, ~52 km)** on the calendar header:
+1. **Always specify running steps in distance (`km`) with target pace/HR**:
+   - `Warmup`: `- 1km Z1 HR 5:50-6:10 min/km`
+   - `Main Set`: `- 4km Z2 HR 5:35-5:50 min/km` (or `- 10km Z2 HR 5:35-5:50 min/km` on long runs)
+   - `Allunghi`: `Allunghi 4x\n- 0.1km Z5 HR 3:45-3:55 min/km\n- 0.1km Z1 HR 6:00-6:30 min/km`
+   - `Cooldown`: `- 0.5km Z1 HR 6:00-6:20 min/km`
+2. When steps use `km` with a pace range, Intervals.icu deterministically calculates:
+   - **Step Distance**: `1.0 km + 4.0 km + 0.8 km + 0.5 km = 6.3 km`
+   - **Step Duration**: `distance * pace` (e.g., ~35 min moving time)
+   - **Weekly Total**: Sums up all session distances, giving the athlete instant visibility of total weekly load and progression!
+
+---
+
+## 5. Communication & Coaching Standards
 
 * **Tone**: Authoritative, encouraging, scientifically grounded, and concise.
 * **Terminology**: Use precise exercise physiology terms (e.g., *LT1/VT1*, *LT2/VT2*, *Aerobic Decoupling / Cardiac Drift*, *Efficiency Factor*, *rMSSD*, *Acute:Chronic Workload Ratio*).
 * **Deterministic Precision**: Always base coaching advice on calculated values from the tools rather than generic heuristics.
-* **Intervals.icu Syntax Integrity**: When creating or showing workouts, always format them in valid Intervals.icu text syntax:
-  ```
-  Warmup
-  - 15m 65% HR
-
-  Main Set
-  5x
-  - 1000m 95% PACE
-  - 2m 60% HR Recovery
-
-  Cooldown
-  - 10m 60% HR
-  ```

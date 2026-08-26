@@ -1,89 +1,197 @@
 {
-  "initialized": false,
+  "initialized": true,
   "personal": {
-    "name": "",
+    "name": "Federico",
     "birth_date": "",
     "weight_kg": {
-      "value": 0.0,
-      "updated_at": ""
+      "value": 68.0,
+      "updated_at": "2026-08-26T13:21:24.840746+00:00"
     }
   },
   "metrics": {
     "lthr_bpm": {
-      "value": 0,
-      "updated_at": ""
+      "value": 188,
+      "updated_at": "2026-08-26T13:21:24.840746+00:00"
     },
     "max_hr_bpm": {
-      "value": 0,
-      "updated_at": ""
+      "value": 204,
+      "updated_at": "2026-08-26T13:21:24.840746+00:00"
     },
     "resting_hr_baseline": {
-      "value": 0,
-      "updated_at": ""
+      "value": 49,
+      "updated_at": "2026-08-26T13:21:24.840746+00:00"
     },
     "threshold_pace_sec_km": {
-      "value": 0.0,
-      "updated_at": ""
+      "value": 265.0,
+      "updated_at": "2026-08-26T13:39:01.975310+00:00"
     },
     "hr_zones": [
       {
         "zone": "Z1",
         "name": "Active Recovery",
         "min": 0,
-        "max": 0
+        "max": 145
       },
       {
         "zone": "Z2",
         "name": "Aerobic / Endurance",
-        "min": 0,
-        "max": 0
+        "min": 146,
+        "max": 164
       },
       {
         "zone": "Z3",
         "name": "Tempo",
-        "min": 0,
-        "max": 0
+        "min": 165,
+        "max": 176
       },
       {
         "zone": "Z4",
         "name": "Threshold (LT2)",
-        "min": 0,
-        "max": 0
+        "min": 177,
+        "max": 188
       },
       {
         "zone": "Z5",
         "name": "VO2max / Anaerobic",
-        "min": 0,
-        "max": 0
+        "min": 189,
+        "max": 204
       }
     ],
-    "pace_zones": []
+    "pace_zones": [
+      {
+        "zone": "Z1",
+        "name": "Active Recovery / Rigenerante",
+        "min_sec_km": 353.0,
+        "max_sec_km": 999.0,
+        "pace_display": "> 5:53/km",
+        "pct_threshold": "< 75% velocity"
+      },
+      {
+        "zone": "Z2",
+        "name": "Aerobic Base / Fondo Lento",
+        "min_sec_km": 330.0,
+        "max_sec_km": 353.0,
+        "pace_display": "5:30 - 5:53/km",
+        "pct_threshold": "75 - 80% velocity"
+      },
+      {
+        "zone": "Z3",
+        "name": "Tempo / Fondo Medio (Marathon Pace)",
+        "min_sec_km": 285.0,
+        "max_sec_km": 330.0,
+        "pace_display": "4:45 - 5:30/km",
+        "pct_threshold": "80 - 93% velocity"
+      },
+      {
+        "zone": "Z4",
+        "name": "Lactate Threshold / Soglia (LT2)",
+        "min_sec_km": 265.0,
+        "max_sec_km": 285.0,
+        "pace_display": "4:25 - 4:45/km",
+        "pct_threshold": "93 - 100% velocity"
+      },
+      {
+        "zone": "Z5",
+        "name": "VO2max / Potenza Aerobica",
+        "min_sec_km": 235.0,
+        "max_sec_km": 265.0,
+        "pace_display": "3:55 - 4:25/km",
+        "pct_threshold": "100 - 113% velocity"
+      },
+      {
+        "zone": "Z6",
+        "name": "Speed / Ripetute Brevi",
+        "min_sec_km": 0.0,
+        "max_sec_km": 235.0,
+        "pace_display": "< 3:55/km",
+        "pct_threshold": "> 113% velocity"
+      }
+    ]
   },
   "preferences": {
     "coaching_philosophy": "Polarized 80/20",
-    "strengths": [],
-    "weaknesses": [],
+    "strengths": [
+      "Sforzi brevi (~20 min)",
+      "Potenza aerobica / VO2max (12k @ 4:18/km)",
+      "Alta capacit\u00e0 di assorbimento e tolleranza ad aumenti repentini di volume (fino a 50km in 4 settimane)"
+    ],
+    "weaknesses": [
+      "Efficienza aerobica prolungata (durability) oltre i 75-90 min",
+      "Gestione del ritmo maratona su distanze lunghe"
+    ],
     "weekly_availability": {
       "days": {
-        "monday": "Rest or short recovery",
-        "tuesday": "Intervals",
-        "wednesday": "Easy aerobic",
-        "thursday": "Tempo/Threshold",
-        "friday": "Rest",
-        "saturday": "Long Run",
-        "sunday": "Cross-training or Easy"
+        "monday": "Corsa facile Z2 (breve 5-7km) + Forza Core & Stabilit\u00e0",
+        "tuesday": "Sessione di Qualit\u00e0 (Intervalli VO2max / Soglia Z4-Z5)",
+        "wednesday": "Riposo Totale",
+        "thursday": "Corsa Aerobica Z2 (7-9km) + Forza Gambe",
+        "friday": "Corsa Facile / Recupero Attivo Z1-Z2 (5-7km)",
+        "saturday": "Lungo Aerobico Progressivo (Long Run mattutino)",
+        "sunday": "Riposo Totale"
       },
-      "updated_at": ""
+      "updated_at": "2026-08-26T13:41:54.076378+00:00"
+    },
+    "benchmarks": {
+      "half_marathon": {
+        "pace_str": "4:48/km",
+        "date": "2026-05"
+      },
+      "12k": {
+        "pace_str": "4:18/km",
+        "date": "2026-05"
+      }
+    },
+    "training_preferences": {
+      "session_distribution": "Preferenza per frequenza elevata di corse pi\u00f9 brevi anzich\u00e9 poche corse molto lunghe (eccetto il lungo settimanale)",
+      "volume_progression": "Ramp rate rapido fino a ~50 km/settimana in 4 settimane",
+      "rest_days_per_week": 2,
+      "rest_days": [
+        "Wednesday",
+        "Sunday"
+      ],
+      "strength_training": {
+        "frequency_per_week": 2,
+        "sessions": [
+          {
+            "focus": "Core, Addome & Stabilit\u00e0 lombo-pelvica",
+            "recommended_day": "Monday",
+            "description": "Plank, deadbug, bird-dog, hollow body, rotazioni e stabilit\u00e0 anca/bacino"
+          },
+          {
+            "focus": "Forza Gambe & Catena Posteriore",
+            "recommended_day": "Thursday",
+            "description": "Squat bulgari, stacchi a gambe tese/rumeni, calf raise eccentrici, affondi camminati, step-up"
+          }
+        ]
+      },
+      "distance_formatting": "Always format running workout steps using distance (km) and target pace so weekly estimated mileage is accurately aggregated on the Intervals.icu calendar."
     }
   },
   "target_events": [
     {
-      "name": "",
-      "date": "YYYY-MM-DD",
-      "distance_km": 0.0,
+      "name": "Orienteering Travalle",
+      "date": "2026-10-31",
+      "distance_km": 7.0,
+      "goal_time_sec": 0,
+      "priority": "B",
+      "updated_at": "2026-08-26T13:21:24.840746+00:00"
+    },
+    {
+      "name": "Firenze Marathon",
+      "date": "2026-11-29",
+      "distance_km": 42.2,
       "goal_time_sec": 0,
       "priority": "A",
-      "updated_at": ""
+      "updated_at": "2026-08-26T13:21:24.840746+00:00"
+    },
+    {
+      "name": "Arezzo Wild Trail",
+      "date": "2026-12-13",
+      "distance_km": 23.0,
+      "elevation_gain_m": 1100,
+      "goal_time_sec": 0,
+      "priority": "B",
+      "updated_at": "2026-08-26T13:21:24.840746+00:00"
     }
   ]
 }
