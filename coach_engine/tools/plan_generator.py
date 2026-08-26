@@ -38,32 +38,55 @@ class WorkoutPlanGenerator:
     @classmethod
     def create_easy_aerobic_run(
         cls,
-        duration_min: int = 45,
+        duration_min: Optional[int] = None,
+        distance_km: Optional[float] = None,
         target_hr_pct: int = 68,
         zone_label: str = "Z2 Aerobic Base",
+        target_pace: Optional[str] = None,
+        target_hr: Optional[str] = None,
     ) -> Dict[str, Any]:
-        """Creates a continuous steady Zone 2 base run."""
-        description = (
-            f"Warmup\n"
-            f"- 10m 60-65% HR Easy Jog\n\n"
-            f"Main Set\n"
-            f"- {duration_min - 15}m {target_hr_pct}% HR {zone_label}\n\n"
-            f"Cooldown\n"
-            f"- 5m 60% HR Walking / Easy Jog"
-        )
-        return {
-            "name": f"Easy Aerobic Run {duration_min}m",
-            "type": "Run",
-            "description": description,
-            "category": "WORKOUT",
-        }
+        """Creates a continuous steady Zone 2 base run supporting distance-based or duration-based syntax."""
+        if distance_km is not None:
+            main_km = max(1.0, round(distance_km - 1.5, 1))
+            hr_str = target_hr or f"Z2 HR {target_hr_pct}% HR"
+            pace_str = target_pace or "5:35-5:50 min/km"
+            description = (
+                f"Warmup\n"
+                f"- 1km Z1 HR 5:50-6:10 min/km Riscaldamento (<145 bpm)\n\n"
+                f"Main Set\n"
+                f"- {main_km}km {hr_str} {pace_str} {zone_label}\n\n"
+                f"Cooldown\n"
+                f"- 0.5km Z1 HR 6:00-6:20 min/km Defaticamento (<145 bpm)"
+            )
+            return {
+                "name": f"Corsa Facile Z2 (~{distance_km:.1f}k)",
+                "type": "Run",
+                "description": description,
+                "category": "WORKOUT",
+            }
+        else:
+            d = duration_min or 45
+            description = (
+                f"Warmup\n"
+                f"- 10m 60-65% HR Easy Jog\n\n"
+                f"Main Set\n"
+                f"- {d - 15}m {target_hr_pct}% HR {zone_label}\n\n"
+                f"Cooldown\n"
+                f"- 5m 60% HR Walking / Easy Jog"
+            )
+            return {
+                "name": f"Easy Aerobic Run {d}m",
+                "type": "Run",
+                "description": description,
+                "category": "WORKOUT",
+            }
 
     @classmethod
     def create_vo2max_intervals(
         cls,
         sport: str = "Run",
         reps: int = 5,
-        rep_spec: str = "1000m",
+        rep_spec: str = "1km",
         rep_intensity: str = "95-100% PACE",
         recovery_spec: str = "2m",
         recovery_intensity: str = "60% HR",
@@ -73,8 +96,7 @@ class WorkoutPlanGenerator:
         """Creates a VO2max interval workout with repeats."""
         description = (
             f"Warmup\n"
-            f"- {warmup_min}m 65% HR Progressive Warmup\n"
-            f"- 4x 20s 110% PACE / 40s 60% HR Strides\n\n"
+            f"- {warmup_min}m 65% HR Progressive Warmup\n\n"
             f"Main Set\n"
             f"{reps}x\n"
             f"- {rep_spec} {rep_intensity} Fast Rep\n"
@@ -93,27 +115,28 @@ class WorkoutPlanGenerator:
     def create_threshold_tempo_session(
         cls,
         sport: str = "Run",
-        blocks: int = 3,
-        block_duration_min: int = 10,
-        block_intensity: str = "92-95% LTHR",
-        recovery_min: int = 2,
-        warmup_min: int = 15,
-        cooldown_min: int = 10,
+        blocks: int = 4,
+        block_dist_km: float = 1.5,
+        block_intensity: str = "Z4 HR 4:15-4:20 min/km",
+        recovery_dist_km: float = 0.4,
+        warmup_km: float = 2.0,
+        cooldown_km: float = 1.0,
     ) -> Dict[str, Any]:
         """Creates a Lactate Threshold / Cruise Interval workout."""
-        target_name = "PACE" if "PACE" in block_intensity else "LTHR"
         description = (
             f"Warmup\n"
-            f"- {warmup_min}m 65% HR Aerobic Warmup\n\n"
-            f"Main Set\n"
-            f"{blocks}x\n"
-            f"- {block_duration_min}m {block_intensity} Threshold Cruise\n"
-            f"- {recovery_min}m 60% HR Recovery Float\n\n"
+            f"- {warmup_km}km Z1 HR 5:50-6:10 min/km Riscaldamento Progressivo (<145 bpm)\n\n"
+            f"Allunghi 4x\n"
+            f"- 0.1km Z5 HR 3:45-3:55 min/km Allungo\n"
+            f"- 0.1km Z1 HR 6:00-6:30 min/km Souplesse\n\n"
+            f"Main Set {blocks}x\n"
+            f"- {block_dist_km}km {block_intensity} Ripetuta Soglia LT2 (177-188 bpm)\n"
+            f"- {recovery_dist_km}km Z1 HR 6:00-6:30 min/km Recupero Souplesse (<145 bpm)\n\n"
             f"Cooldown\n"
-            f"- {cooldown_min}m 60% HR Easy Recovery"
+            f"- {cooldown_km}km Z1 HR 5:50-6:15 min/km Defaticamento (<145 bpm)"
         )
         return {
-            "name": f"{blocks}x{block_duration_min}m Threshold Cruise",
+            "name": f"⚡ Soglia: {blocks}x{block_dist_km}km",
             "type": sport,
             "description": description,
             "category": "WORKOUT",
@@ -122,23 +145,23 @@ class WorkoutPlanGenerator:
     @classmethod
     def create_progressive_long_run(
         cls,
-        total_duration_min: int = 90,
-        fast_finish_min: int = 20,
+        total_distance_km: float = 14.0,
+        fast_finish_km: float = 2.0,
     ) -> Dict[str, Any]:
         """Creates an extended long run with a progression to Marathon / Moderate pace."""
-        base_duration = total_duration_min - fast_finish_min - 10
+        base_km = total_distance_km - fast_finish_km - 2.0
         description = (
             f"Warmup\n"
-            f"- 10m 65% HR Easy Start\n\n"
+            f"- 1.5km Z1 HR 5:50-6:10 min/km Avvio Progressivo (<145 bpm)\n\n"
             f"Steady Aerobic\n"
-            f"- {base_duration}m 70-75% HR Z2 Base\n\n"
+            f"- {base_km}km Z2 HR 5:35-5:50 min/km Fondo Lento Base (146-164 bpm)\n\n"
             f"Progression Finish\n"
-            f"- {fast_finish_min}m 85-88% LTHR Marathon Pace Finish\n\n"
+            f"- {fast_finish_km}km Z3 HR 4:55-5:10 min/km Finale Progressione Z3 (165-176 bpm)\n\n"
             f"Cooldown\n"
-            f"- 5m 60% HR Easy Jog"
+            f"- 0.5km Z1 HR 6:00-6:20 min/km Defaticamento (<145 bpm)"
         )
         return {
-            "name": f"Long Run {total_duration_min}m (w/ Fast Finish)",
+            "name": f"🏃 Lungo Progressivo (~{total_distance_km:.1f}k)",
             "type": "Run",
             "description": description,
             "category": "WORKOUT",
