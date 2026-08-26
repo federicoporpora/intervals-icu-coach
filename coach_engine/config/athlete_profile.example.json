@@ -1,0 +1,94 @@
+{
+  "initialized": false,
+  "personal": {
+    "name": "Jane Runner",
+    "birth_date": "1995-04-12",
+    "weight_kg": {
+      "value": 62.5,
+      "updated_at": "2026-01-01T00:00:00+00:00"
+    }
+  },
+  "metrics": {
+    "lthr_bpm": {
+      "value": 175,
+      "updated_at": "2026-01-01T00:00:00+00:00"
+    },
+    "max_hr_bpm": {
+      "value": 195,
+      "updated_at": "2026-01-01T00:00:00+00:00"
+    },
+    "resting_hr_baseline": {
+      "value": 48,
+      "updated_at": "2026-01-01T00:00:00+00:00"
+    },
+    "threshold_pace_sec_km": {
+      "value": 240.0,
+      "updated_at": "2026-01-01T00:00:00+00:00"
+    },
+    "hr_zones": [
+      {
+        "zone": "Z1",
+        "name": "Active Recovery",
+        "min": 0,
+        "max": 140
+      },
+      {
+        "zone": "Z2",
+        "name": "Aerobic / Endurance",
+        "min": 141,
+        "max": 155
+      },
+      {
+        "zone": "Z3",
+        "name": "Tempo",
+        "min": 156,
+        "max": 162
+      },
+      {
+        "zone": "Z4",
+        "name": "Threshold (LT2)",
+        "min": 163,
+        "max": 173
+      },
+      {
+        "zone": "Z5",
+        "name": "VO2max / Anaerobic",
+        "min": 174,
+        "max": 195
+      }
+    ],
+    "pace_zones": []
+  },
+  "preferences": {
+    "coaching_philosophy": "Polarized 80/20",
+    "strengths": [
+      "Aerobic durability",
+      "Consistent pacing"
+    ],
+    "weaknesses": [
+      "Top-end anaerobic speed"
+    ],
+    "weekly_availability": {
+      "days": {
+        "monday": "Rest or short recovery",
+        "tuesday": "Intervals (VO2max/Threshold)",
+        "wednesday": "Easy Aerobic Z2",
+        "thursday": "Tempo or Strength",
+        "friday": "Rest",
+        "saturday": "Long Run",
+        "sunday": "Easy Aerobic / Cross-training"
+      },
+      "updated_at": "2026-01-01T00:00:00+00:00"
+    }
+  },
+  "target_events": [
+    {
+      "name": "Target Marathon",
+      "date": "2026-11-15",
+      "distance_km": 42.195,
+      "goal_time_sec": 10800,
+      "priority": "A",
+      "updated_at": "2026-01-01T00:00:00+00:00"
+    }
+  ]
+}

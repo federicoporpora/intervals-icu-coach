@@ -1,0 +1,89 @@
+{
+  "initialized": false,
+  "personal": {
+    "name": "",
+    "birth_date": "",
+    "weight_kg": {
+      "value": 0.0,
+      "updated_at": ""
+    }
+  },
+  "metrics": {
+    "lthr_bpm": {
+      "value": 0,
+      "updated_at": ""
+    },
+    "max_hr_bpm": {
+      "value": 0,
+      "updated_at": ""
+    },
+    "resting_hr_baseline": {
+      "value": 0,
+      "updated_at": ""
+    },
+    "threshold_pace_sec_km": {
+      "value": 0.0,
+      "updated_at": ""
+    },
+    "hr_zones": [
+      {
+        "zone": "Z1",
+        "name": "Active Recovery",
+        "min": 0,
+        "max": 0
+      },
+      {
+        "zone": "Z2",
+        "name": "Aerobic / Endurance",
+        "min": 0,
+        "max": 0
+      },
+      {
+        "zone": "Z3",
+        "name": "Tempo",
+        "min": 0,
+        "max": 0
+      },
+      {
+        "zone": "Z4",
+        "name": "Threshold (LT2)",
+        "min": 0,
+        "max": 0
+      },
+      {
+        "zone": "Z5",
+        "name": "VO2max / Anaerobic",
+        "min": 0,
+        "max": 0
+      }
+    ],
+    "pace_zones": []
+  },
+  "preferences": {
+    "coaching_philosophy": "Polarized 80/20",
+    "strengths": [],
+    "weaknesses": [],
+    "weekly_availability": {
+      "days": {
+        "monday": "Rest or short recovery",
+        "tuesday": "Intervals",
+        "wednesday": "Easy aerobic",
+        "thursday": "Tempo/Threshold",
+        "friday": "Rest",
+        "saturday": "Long Run",
+        "sunday": "Cross-training or Easy"
+      },
+      "updated_at": ""
+    }
+  },
+  "target_events": [
+    {
+      "name": "",
+      "date": "YYYY-MM-DD",
+      "distance_km": 0.0,
+      "goal_time_sec": 0,
+      "priority": "A",
+      "updated_at": ""
+    }
+  ]
+}
