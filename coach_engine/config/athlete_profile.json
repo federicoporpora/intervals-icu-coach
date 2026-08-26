@@ -165,6 +165,15 @@
         ]
       },
       "distance_formatting": "Always format running workout steps using distance (km) and target pace so weekly estimated mileage is accurately aggregated on the Intervals.icu calendar."
+    },
+    "current_focus": {
+      "status": "Periodo Esami (Scarico / Mantenimento leggero fino al 10 Settembre)",
+      "exam_dates": [
+        "2026-09-01",
+        "2026-09-02",
+        "2026-09-10"
+      ],
+      "notes": "Corse brevi, facili in Z1/Z2 a scopo di sfogo mentale e mantenimento; ripartenza carico strutturato e qualit\u00e0 dal 11 Settembre."
     }
   },
   "target_events": [
