@@ -1,6 +1,6 @@
 # 🏃 Autonomous Endurance Coaching Engine for Intervals.icu
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![License: PolyForm Noncommercial](https://img.shields.io/badge/License-PolyForm%20Noncommercial-blue.svg)](LICENSE)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![Platform](https://img.shields.io/badge/platform-Antigravity%20CLI-orange.svg)](https://github.com/google)
 [![Intervals.icu API](https://img.shields.io/badge/API-Intervals.icu-red.svg)](https://intervals.icu)
@@ -136,6 +136,10 @@ python3 -m unittest discover -s tests -v
 
 ---
 
-## 6. License
+## 6. License & Terms
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **PolyForm Noncommercial License 1.0.0** (Personal & Non-Commercial Use Only) - see the [LICENSE](LICENSE) file for details.
+
+* **Permitted**: Free for individual athletes for personal training analysis, research, and non-commercial educational use.
+* **Prohibited**: Any commercial use, SaaS deployment, platform integration, closed redistribution, or monetization without prior written permission from [Federico Porpora](https://github.com/federicoporpora).
+
