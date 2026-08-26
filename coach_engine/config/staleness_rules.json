@@ -1,0 +1,9 @@
+{
+  "weight_kg": 14,
+  "resting_hr_baseline": 30,
+  "lthr_bpm": 60,
+  "threshold_pace_sec_km": 45,
+  "max_hr_bpm": 90,
+  "target_events": 30,
+  "weekly_availability": 30
+}

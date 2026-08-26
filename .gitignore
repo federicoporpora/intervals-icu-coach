@@ -1,0 +1,22 @@
+# Environment & secrets
+.env
+*.env.local
+
+# Python cache & bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local cache & downloads
+coach_engine/data/cache/*.json
+!coach_engine/data/cache/.gitkeep
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+*.swp
