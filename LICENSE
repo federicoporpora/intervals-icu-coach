@@ -1,21 +1,25 @@
-MIT License
+# PolyForm Noncommercial License 1.0.0 & Personal Use Terms
 
-Copyright (c) 2026 Federico Porpora
+Copyright (c) 2026 Federico Porpora. All Rights Reserved.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+## 1. Purpose & Grant of License
+The Licensor (Federico Porpora) grants you a non-exclusive, worldwide, royalty-free license to use, copy, modify, and distribute the Software, subject to the conditions and limitations set forth below.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+## 2. Permitted Use (Noncommercial & Personal)
+You may run and use this Software solely for **personal, educational, research, and non-commercial purposes**. Individual athletes may run this software locally for their own private training analysis.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+## 3. Prohibited Commercial Use
+You may **NOT**:
+1. Use the Software, in whole or in part, for any **commercial purpose**, commercial service, or revenue-generating activity.
+2. Integrate, embed, host, or deploy the Software as part of any Software-as-a-Service (SaaS), cloud service, API gateway, mobile application, or commercial coaching platform (including any integration into Intervals.icu or competing platforms) without a separate written commercial agreement signed by Federico Porpora.
+3. Sell, rent, lease, sublicense, or monetize the Software or any derived works.
+
+## 4. Attribution & Notice
+All copies or substantial portions of the Software must retain the above copyright notice, this license document, and proper attribution to Federico Porpora.
+
+## 5. Commercial Licensing Inquiries
+For commercial licensing, enterprise integration, or partnership proposals, please contact:
+**Federico Porpora** — [GitHub: @federicoporpora](https://github.com/federicoporpora)
+
+## 6. Disclaimer of Warranty
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
