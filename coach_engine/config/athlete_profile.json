@@ -164,7 +164,8 @@
           }
         ]
       },
-      "distance_formatting": "Always format running workout steps using distance (km) and target pace so weekly estimated mileage is accurately aggregated on the Intervals.icu calendar."
+      "distance_formatting": "Always format running workout steps using distance (km) and target pace so weekly estimated mileage is accurately aggregated on the Intervals.icu calendar.",
+      "primary_governor": "Heart Rate (FC / Cardio). L'atleta predilige nettamente l'allenamento guidato dal battito cardiaco (zone FC in bpm e %LTHR) rispetto al passo. Il passo \u00e8 secondario e subordinato al rispetto del target cardiaco."
     },
     "current_focus": {
       "status": "Periodo Esami (Scarico / Mantenimento leggero fino al 10 Settembre)",
@@ -174,7 +175,8 @@
         "2026-09-10"
       ],
       "notes": "Corse brevi, facili in Z1/Z2 a scopo di sfogo mentale e mantenimento; ripartenza carico strutturato e qualit\u00e0 dal 11 Settembre."
-    }
+    },
+    "intensity_metric_preference": "Heart Rate (HR-First)"
   },
   "target_events": [
     {
