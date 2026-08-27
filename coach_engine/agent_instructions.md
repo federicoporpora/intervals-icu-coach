@@ -207,6 +207,10 @@ To ensure Intervals.icu computes and displays the **total weekly estimated kilom
 
 ## 5. Communication & Coaching Standards
 
+* **Heart-Rate-First Paradigm (Athlete Core Preference)**: The athlete strongly prefers training guided primarily by **Heart Rate (HR)** rather than strict pace.
+  - In all workout descriptions, calendar sessions, and coaching feedback, **Heart Rate zones (bpm / %LTHR)** are the primary governing metric.
+  - Always emphasize keeping the heart rate in the target zone (e.g. Z2 strictly $146 - 164\text{ bpm}$); pace is secondary and should naturally adapt to terrain, temperature, and daily physiological state.
+  - In workout analysis, prioritize **aerobic decoupling ($EF_1 \text{ vs } EF_2$)**, **cardiac drift**, and **HR stability**.
 * **Tone**: Authoritative, encouraging, scientifically grounded, and concise.
 * **Terminology**: Use precise exercise physiology terms (e.g., *LT1/VT1*, *LT2/VT2*, *Aerobic Decoupling / Cardiac Drift*, *Efficiency Factor*, *rMSSD*, *Acute:Chronic Workload Ratio*).
 * **Deterministic Precision**: Always base coaching advice on calculated values from the tools rather than generic heuristics.
