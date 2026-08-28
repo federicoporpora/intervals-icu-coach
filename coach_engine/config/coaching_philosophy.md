@@ -134,3 +134,14 @@ graph TD
 3. **If a Key Session is Missed**:
    - If missed due to schedule/logistics: Shift it to the next available quality day, converting the missed day to rest.
    - If missed due to fatigue/pain: Cancel the session entirely; do not attempt to make it up.
+
+---
+
+## 8. Post-Workout Execution Auditing & Critical Feedback Rules
+
+Every completed session is audited against its planned physiological prescription:
+1. **Cooldown Integrity**: Any easy/aerobic or interval session ending with elevated HR (> Z1) or accelerating into the finish is flagged. The coach must verify if cooldown was performed separately off-watch and warn about sympathetic overactivation.
+2. **Pacing Discipline & Drift Trigger**: Unplanned surges (spikes in speed) during base runs that trigger premature cardiac drift are flagged as pacing discipline errors.
+3. **Zone Ceiling Compliance**: On Z1/Z2 sessions, any sustained excursion into Z3+ is critiqued to prevent chronic autonomic accumulation in the moderate intensity zone.
+4. **Constructive Candor**: Feedback must prioritize physiological truth and discipline over polite validation.
+
