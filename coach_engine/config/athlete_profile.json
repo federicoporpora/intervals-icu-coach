@@ -165,7 +165,8 @@
         ]
       },
       "distance_formatting": "Always format running workout steps using distance (km) and target pace so weekly estimated mileage is accurately aggregated on the Intervals.icu calendar.",
-      "primary_governor": "Heart Rate (FC / Cardio). L'atleta predilige nettamente l'allenamento guidato dal battito cardiaco (zone FC in bpm e %LTHR) rispetto al passo. Il passo \u00e8 secondario e subordinato al rispetto del target cardiaco."
+      "primary_governor": "Heart Rate (FC / Cardio). L'atleta predilige nettamente l'allenamento guidato dal battito cardiaco (zone FC in bpm e %LTHR) rispetto al passo. Il passo è secondario e subordinato al rispetto del target cardiaco.",
+      "feedback_style": "Uncompromising and critically honest. Always flag significant workout execution flaws, deviations from plan (missing cooldown, finish HR surges, mid-run pacing jumps, thermal mismatches), and inquire if missing components were performed off-watch."
     },
     "current_focus": {
       "status": "Periodo Esami (Scarico / Mantenimento leggero fino al 10 Settembre)",
