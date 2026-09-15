@@ -2,6 +2,12 @@
 .env
 *.env.local
 
+# Athlete local configuration & personal data (strictly local, never committed)
+coach_engine/config/athlete_profile.json
+coach_engine/config/athlete_memory.json
+*.ics
+!tests/fixtures/*.ics
+
 # Python cache & bytecode
 __pycache__/
 *.py[cod]
