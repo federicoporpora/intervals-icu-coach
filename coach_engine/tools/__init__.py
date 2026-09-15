@@ -11,6 +11,7 @@ from .workout_analyzer import (
 )
 from .plan_generator import WorkoutPlanGenerator
 from .state_manager import StateManager, get_state_manager
+from .external_calendar import ExternalCalendarManager, get_external_calendar_manager
 
 __all__ = [
     "IntervalsAPIClient",
@@ -26,4 +27,9 @@ __all__ = [
     "WorkoutPlanGenerator",
     "StateManager",
     "get_state_manager",
+    "MemoryManager",
+    "get_memory_manager",
+    "ExternalCalendarManager",
+    "get_external_calendar_manager",
 ]
+

@@ -1,0 +1,82 @@
+{
+  "version": "1.0",
+  "updated_at": "2026-08-30T19:30:00Z",
+  "long_term": {
+    "physiological_traits": [
+      {
+        "id": "lt_phys_01",
+        "content": "Knee discomfort when exceeding 15km on concrete/road surfaces",
+        "category": "physiological_traits",
+        "tags": ["knee", "injury", "volume", "surface"],
+        "created_at": "2026-08-15T08:00:00Z",
+        "updated_at": "2026-08-15T08:00:00Z"
+      }
+    ],
+    "preferences_and_habits": [
+      {
+        "id": "lt_pref_01",
+        "content": "Prefers Saturday morning before 09:00 for long endurance sessions",
+        "category": "preferences_and_habits",
+        "tags": ["schedule", "long_run", "weekend"],
+        "created_at": "2026-08-10T14:30:00Z",
+        "updated_at": "2026-08-10T14:30:00Z"
+      }
+    ],
+    "coaching_directives": [
+      {
+        "id": "lt_dir_01",
+        "content": "Heart-rate-first paradigm: strictly enforce Z2 ceiling (<154 bpm) regardless of pace",
+        "category": "coaching_directives",
+        "tags": ["hr", "zone2", "discipline"],
+        "created_at": "2026-08-01T09:00:00Z",
+        "updated_at": "2026-08-01T09:00:00Z"
+      }
+    ],
+    "general": []
+  },
+  "short_term": {
+    "calendar_constraints": [
+      {
+        "id": "st_c_01",
+        "date_start": "2026-09-01",
+        "date_end": "2026-09-01",
+        "type": "exam",
+        "description": "University exam on the 1st of the month - no training possible",
+        "action": "no_training",
+        "synced_to_intervals": true,
+        "intervals_event_id": "1002451",
+        "created_at": "2026-08-30T19:30:00Z",
+        "expires_at": "2026-09-01T23:59:59Z"
+      }
+    ],
+    "follow_ups_and_reminders": [
+      {
+        "id": "st_r_01",
+        "description": "Ask athlete for RPE and subjective feeling of Tuesday 5x1k VO2max intervals",
+        "trigger_condition": "next_interaction",
+        "target_date": "2026-08-31",
+        "due_date": "2026-09-02",
+        "priority": "high",
+        "status": "pending",
+        "metadata": {
+          "workout_name": "5x1k VO2max",
+          "workout_date": "2026-08-30"
+        },
+        "created_at": "2026-08-30T19:30:00Z",
+        "completed_at": null,
+        "completion_notes": null
+      }
+    ],
+    "temporary_physiological_status": [
+      {
+        "id": "st_p_01",
+        "description": "Mild left calf tightness after yesterday's track session",
+        "severity": "mild",
+        "date_recorded": "2026-08-30",
+        "duration_days": 3,
+        "expires_at": "2026-09-02T23:59:59Z",
+        "created_at": "2026-08-30T19:30:00Z"
+      }
+    ]
+  }
+}

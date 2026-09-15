@@ -12,7 +12,7 @@ __pycache__/
 htmlcov/
 
 # Local cache & downloads
-coach_engine/data/cache/*.json
+coach_engine/data/cache/*
 !coach_engine/data/cache/.gitkeep
 
 # IDE & OS

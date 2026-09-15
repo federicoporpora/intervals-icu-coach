@@ -79,6 +79,31 @@
         "sunday": "Easy Aerobic / Cross-training"
       },
       "updated_at": "2026-01-01T00:00:00+00:00"
+    },
+    "integrations": {
+      "intervals_ical_sync": false,
+      "external_calendar_commitments_sync": false,
+      "device_ecosystem": "Garmin / Suunto / Coros / Apple Watch",
+      "external_calendars": [
+        {
+          "name": "Personal Google Calendar",
+          "url": "https://calendar.google.com/calendar/ical/your_email@gmail.com/private-xxxx/basic.ics",
+          "type": "personal",
+          "commute_minutes": 0,
+          "enabled": true
+        },
+        {
+          "name": "University / Work Schedule",
+          "url": "webcal://example.com/calendar.ics",
+          "type": "university",
+          "commute_minutes": 45,
+          "enabled": true
+        }
+      ],
+      "logistics": {
+        "shower_buffer_minutes": 35,
+        "default_commute_minutes": 45
+      }
     }
   },
   "target_events": [

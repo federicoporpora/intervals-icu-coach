@@ -255,6 +255,22 @@ class IntervalsAPIClient:
         result = self._request("GET", endpoint, params=params, use_cache=use_cache, cache_key=cache_key)
         return result if isinstance(result, list) else []
 
+    def get_calendar_feed_url(self, athlete_id: Optional[str] = None) -> Optional[str]:
+        """
+        Retrieves the athlete's personal iCal (.ics) calendar subscription feed URL from Intervals.icu.
+        Used to subscribe to workouts in Google Calendar, Apple Calendar, or Outlook.
+        """
+        aid = athlete_id or self.athlete_id
+        endpoint = f"athlete/{aid}/calendars"
+        result = self._request("GET", endpoint)
+        if isinstance(result, list) and len(result) > 0:
+            for cal in result:
+                url = cal.get("url")
+                if url and url.endswith(".ics"):
+                    return url
+            return result[0].get("url")
+        return None
+
     def get_event(
         self,
         event_id: Union[str, int],
@@ -306,12 +322,68 @@ class IntervalsAPIClient:
         event_id: Union[str, int],
         athlete_id: Optional[str] = None,
     ) -> Dict[str, Any]:
-        """Deletes a planned workout from the calendar."""
+        """Deletes a planned workout or event from the calendar."""
         aid = athlete_id or self.athlete_id
         endpoint = f"athlete/{aid}/events/{event_id}"
         return self._request("DELETE", endpoint)
+
+    def delete_calendar_event(
+        self,
+        event_id: Union[str, int],
+        athlete_id: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Alias for delete_planned_workout to delete any calendar event."""
+        return self.delete_planned_workout(event_id=event_id, athlete_id=athlete_id)
+
+    def create_calendar_holiday(
+        self,
+        start_date: Union[str, date, datetime],
+        end_date: Optional[Union[str, date, datetime]] = None,
+        name: str = "Holiday / Rest Period",
+        description: str = "",
+        athlete_id: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        Creates a HOLIDAY event entry on the Intervals.icu calendar.
+        """
+        start_str = start_date.strftime("%Y-%m-%d") if isinstance(start_date, (date, datetime)) else str(start_date)
+        end_str = (
+            end_date.strftime("%Y-%m-%d")
+            if isinstance(end_date, (date, datetime))
+            else str(end_date) if end_date else start_str
+        )
+
+        payload = {
+            "category": "HOLIDAY",
+            "start_date_local": f"{start_str}T00:00:00",
+            "end_date_local": f"{end_str}T23:59:59",
+            "name": name,
+            "description": description or f"Holiday / Rest: {name}",
+        }
+        return self.create_planned_workout(payload, athlete_id=athlete_id)
+
+    def create_calendar_note(
+        self,
+        date_val: Union[str, date, datetime],
+        name: str = "Note",
+        description: str = "",
+        category: str = "NOTE",
+        athlete_id: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        Creates a NOTE event on the Intervals.icu calendar.
+        """
+        date_str = date_val.strftime("%Y-%m-%d") if isinstance(date_val, (date, datetime)) else str(date_val)
+        payload = {
+            "category": category.upper(),
+            "start_date_local": f"{date_str}T00:00:00",
+            "name": name,
+            "description": description or name,
+        }
+        return self.create_planned_workout(payload, athlete_id=athlete_id)
 
 
 # Default singleton factory
 def get_intervals_client(api_key: Optional[str] = None, athlete_id: Optional[str] = None) -> IntervalsAPIClient:
     return IntervalsAPIClient(api_key=api_key, athlete_id=athlete_id)
+

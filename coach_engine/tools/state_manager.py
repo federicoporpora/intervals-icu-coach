@@ -292,6 +292,15 @@ class StateManager:
             "sunday": "Cross-training or Easy"
         })
 
+        # Integrations & Connected Services
+        raw_integrations = onboarding_data.get("integrations", {})
+        integrations = {
+            "intervals_ical_sync": bool(raw_integrations.get("intervals_ical_sync", False)),
+            "external_calendar_commitments_sync": bool(raw_integrations.get("external_calendar_commitments_sync", False)),
+            "device_ecosystem": str(raw_integrations.get("device_ecosystem", "")),
+        }
+
+
         profile = {
             "initialized": True,
             "personal": {
@@ -315,6 +324,7 @@ class StateManager:
                     "days": weekly_avail,
                     "updated_at": now_iso,
                 },
+                "integrations": integrations,
             },
             "target_events": formatted_events,
         }
@@ -380,6 +390,8 @@ class StateManager:
                 "days": updates_dict["weekly_availability"],
                 "updated_at": now_iso,
             }
+        if "integrations" in updates_dict:
+            profile.setdefault("preferences", {})["integrations"] = updates_dict["integrations"]
 
         # Update events
         if "target_events" in updates_dict:

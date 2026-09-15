@@ -306,3 +306,21 @@ class WorkoutPlanGenerator:
         if "id" in workout_dict:
             payload["id"] = workout_dict["id"]
         return payload
+
+    @classmethod
+    def filter_available_training_days(
+        cls,
+        dates: List[Union[str, date, datetime]],
+        memory_manager: Any,
+    ) -> List[str]:
+        """
+        Filters a list of dates, omitting any dates blocked by calendar constraints in MemoryManager.
+        """
+        available: List[str] = []
+        for d in dates:
+            d_str = d.strftime("%Y-%m-%d") if isinstance(d, (date, datetime)) else str(d).split("T")[0]
+            is_blocked, _ = memory_manager.is_date_blocked(d_str)
+            if not is_blocked:
+                available.append(d_str)
+        return available
+
