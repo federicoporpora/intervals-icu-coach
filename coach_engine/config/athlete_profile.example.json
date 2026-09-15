@@ -106,11 +106,19 @@
       },
       "sleep_and_routine": {
         "bedtime": "00:00",
-        "wake_up_standard": "07:30",
+        "wake_up_standard": "08:00",
+        "wake_up_standard_flexible": "08:30",
         "wake_up_afternoon_classes": "09:30",
         "sleep_target_hours": 8.0,
         "scheduling_inquiry_rule": "Always ask athlete directly if uncertain whether a personal commitment allows running or blocks the day",
-        "weekend_focus": "Scout / social activities; strictly respect weekend calendar commitments"
+        "weekend_focus": "Scout / social activities; strictly respect weekend calendar commitments",
+        "meal_timing_and_digestion": {
+          "hard_workout_post_meal_buffer_min": 120,
+          "easy_workout_post_meal_buffer_min": 60,
+          "pre_meal_preference": true,
+          "includes_breakfast": true,
+          "rule": "For hard workouts: at least 2+ hours digestion after any meal (including breakfast). Strong preference to train before meals."
+        }
       }
     }
   },

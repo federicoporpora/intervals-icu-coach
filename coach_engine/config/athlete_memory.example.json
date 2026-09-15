@@ -20,6 +20,14 @@
         "tags": ["schedule", "long_run", "weekend"],
         "created_at": "2026-08-10T14:30:00Z",
         "updated_at": "2026-08-10T14:30:00Z"
+      },
+      {
+        "id": "lt_pref_02",
+        "content": "Digestion rule: requires 2+ hours after meals for hard workouts; prefers running before meals",
+        "category": "preferences_and_habits",
+        "tags": ["digestion", "meals", "timing", "nutrition"],
+        "created_at": "2026-08-10T14:30:00Z",
+        "updated_at": "2026-08-10T14:30:00Z"
       }
     ],
     "coaching_directives": [

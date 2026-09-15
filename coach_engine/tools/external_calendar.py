@@ -304,7 +304,8 @@ class ExternalCalendarManager:
             except Exception:
                 pass
 
-        wake_std_str = profile_routine.get("wake_up_standard", "07:30")
+        wake_std_str = profile_routine.get("wake_up_standard", "08:00")
+        wake_flex_str = profile_routine.get("wake_up_standard_flexible", "08:30")
         wake_afternoon_str = profile_routine.get("wake_up_afternoon_classes", "09:30")
 
         has_morning_events = any(not e.get("all_day") and e["start_dt"].hour < 12 for e in day_events)
@@ -319,9 +320,15 @@ class ExternalCalendarManager:
             wake_time = dt_time(hour=w_h, minute=w_m)
             routine_reason = "afternoon_classes_sleep_in"
         else:
-            w_h, w_m = map(int, wake_std_str.split(":"))
+            # Flexible standard wake-up: 08:00 if early morning commitment (before 10:15), else 08:30
+            has_early_morning = any(
+                not e.get("all_day") and (e["start_dt"] - timedelta(minutes=e.get("commute_minutes", 0))).time() < dt_time(10, 15)
+                for e in day_events
+            )
+            target_str = wake_std_str if has_early_morning else wake_flex_str
+            w_h, w_m = map(int, target_str.split(":"))
             wake_time = dt_time(hour=w_h, minute=w_m)
-            routine_reason = "standard_schedule"
+            routine_reason = "standard_early" if has_early_morning else "standard_flexible_sleep_in"
 
         day_start = datetime.combine(t_date, wake_time, tzinfo=self.tz)
         day_end = datetime.combine(t_date, dt_time(hour=22, minute=0), tzinfo=self.tz)
@@ -425,10 +432,13 @@ class ExternalCalendarManager:
         shower_buffer_min: int = 35,
         preference: str = "morning",
         wake_time_override: Optional[str] = None,
+        is_hard_workout: bool = False,
+        prefer_pre_meal: bool = True,
     ) -> Optional[Dict[str, Any]]:
         """
         Finds the best available time slot on target_date that fits
         the workout duration plus the post-workout shower/recovery buffer.
+        Respects athlete meal digestion rules (>= 2h post-meal, pre-meal preferred for hard workouts).
         """
         schedule = self.get_daily_schedule(target_date, wake_time_override=wake_time_override)
         if schedule.get("has_all_day_block"):
@@ -441,19 +451,76 @@ class ExternalCalendarManager:
         if not viable:
             return None
 
-        # Prioritize based on preference
-        if preference == "morning":
-            viable.sort(key=lambda x: (0 if x["slot"] == "morning" else 1, x["start"]))
-        elif preference == "evening":
-            viable.sort(key=lambda x: (0 if x["slot"] == "evening" else 1, -x["duration_minutes"]))
-        else:
-            viable.sort(key=lambda x: (0 if x["slot"] == preference else 1, x["start"]))
+        # Prioritize based on preference and pre-meal timing
+        def slot_priority(w: Dict[str, Any]) -> Tuple[int, int, int]:
+            slot_match = 0 if w["slot"] == preference else 1
+            s_h, s_m = map(int, w["start"].split(":"))
+            start_mins = s_h * 60 + s_m
 
+            # Pre-meal priority for hard workouts
+            meal_priority = 1
+            if is_hard_workout and prefer_pre_meal:
+                wake_h, wake_m = map(int, schedule["wake_up_time"].split(":"))
+                wake_mins = wake_h * 60 + wake_m
+                # Pre-breakfast: right at wake-up
+                is_pre_breakfast = abs(start_mins - wake_mins) <= 45
+                # Pre-lunch: starts 11:30 - 13:00
+                is_pre_lunch = 11 * 60 + 30 <= start_mins <= 13 * 60
+                # Pre-dinner: starts 17:30 - 19:30
+                is_pre_dinner = 17 * 60 + 30 <= start_mins <= 19 * 60 + 30
+
+                if is_pre_breakfast or is_pre_lunch or is_pre_dinner:
+                    meal_priority = 0
+                else:
+                    meal_priority = 2
+
+            return (slot_match, meal_priority, start_mins if preference != "evening" else -w["duration_minutes"])
+
+        viable.sort(key=slot_priority)
         chosen = viable[0]
-        # Recommend starting 15m after window opens (or at window start if tight)
+
         win_start_dt = datetime.strptime(f"{schedule['date']} {chosen['start']}", "%Y-%m-%d %H:%M")
         rec_start_dt = win_start_dt
         rec_end_dt = rec_start_dt + timedelta(minutes=workout_duration_min)
+
+        start_h = rec_start_dt.hour
+        wake_h, wake_m = map(int, schedule["wake_up_time"].split(":"))
+        wake_mins = wake_h * 60 + wake_m
+        run_mins = start_h * 60 + rec_start_dt.minute
+
+        # Construct meal / digestion guidance
+        if is_hard_workout:
+            if abs(run_mins - wake_mins) <= 60:
+                meal_advice = (
+                    "PRE-BREAKFAST FASTED (Consigliato): Allenati PRIMA della colazione (a digiuno, idratazione leggera con acqua/elettroliti). "
+                    "Se invece consumi la colazione al risveglio, attendi almeno 2 ore piene (120+ min) prima di avviare la sessione tosta."
+                )
+                timing_type = "pre_breakfast"
+            elif 11 <= start_h <= 13:
+                meal_advice = (
+                    "PRE-PRANZO (Consigliato): Allenati PRIMA del pranzo. Consuma il pasto post-doccia e recupero."
+                )
+                timing_type = "pre_lunch"
+            elif 14 <= start_h <= 17:
+                meal_advice = (
+                    "POST-PRANZO (Attesa digestione >= 2h): Assicurati di aver terminato il pranzo almeno 2 ore piene (o più) prima della sessione tosta."
+                )
+                timing_type = "post_lunch_digestion"
+            elif 17 < start_h <= 20:
+                meal_advice = (
+                    "PRE-CENA (Consigliato): Allenati PRIMA di cena (lontano dal pranzo o da spuntini pesanti). Cena dopo doccia e recupero."
+                )
+                timing_type = "pre_dinner"
+            else:
+                meal_advice = (
+                    "ATTENZIONE DIGESTIONE: Mantieni almeno 2 ore piene (o più) di distanza da qualsiasi pasto precedente (colazione inclusa)."
+                )
+                timing_type = "general_meal_buffer"
+        else:
+            meal_advice = (
+                "SESSIONE AGILE: Impatto digestivo moderato. Consigliato comunque correre prima del pasto oppure attendere 45-60 min di digestione se hai mangiato."
+            )
+            timing_type = "easy_buffer"
 
         return {
             "date": schedule["date"],
@@ -462,6 +529,9 @@ class ExternalCalendarManager:
             "post_workout_ready": (rec_end_dt + timedelta(minutes=shower_buffer_min)).strftime("%H:%M"),
             "window": chosen,
             "margin_minutes": chosen["duration_minutes"] - total_needed,
+            "is_hard_workout": is_hard_workout,
+            "timing_type": timing_type,
+            "meal_advice": meal_advice,
         }
 
     # --------------------------------------------------------------------------

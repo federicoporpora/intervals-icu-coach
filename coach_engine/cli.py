@@ -129,6 +129,7 @@ def main():
     cal_sched_parser.add_argument("--date", help="Target date (YYYY-MM-DD, defaults to today)")
     cal_sched_parser.add_argument("--workout-min", type=int, default=45, help="Estimated workout duration in minutes")
     cal_sched_parser.add_argument("--commute-min", type=int, help="Override commute buffer in minutes")
+    cal_sched_parser.add_argument("--hard", action="store_true", help="Flag if the workout is a hard quality session (enforces 2h+ meal digestion)")
     cal_sched_parser.add_argument("--force-refresh", action="store_true", help="Bypass cache and force HTTP fetch")
 
 
@@ -330,11 +331,17 @@ def main():
             for w in sched["free_windows"]:
                 print(f"  • {w['start']} - {w['end']} ({w['duration_minutes']} min, slot: {w['slot']})")
 
-            slot = ecm.find_optimal_training_slot(target_d, workout_duration_min=args.workout_min)
+            slot = ecm.find_optimal_training_slot(
+                target_d,
+                workout_duration_min=args.workout_min,
+                is_hard_workout=getattr(args, "hard", False),
+            )
             if slot:
                 print(f"\n🏃 Recommended Training Slot ({args.workout_min}m run + 35m shower/recovery):")
                 print(f"  Start: {slot['recommended_start']} ➡️ Finish: {slot['recommended_end']} (Ready by: {slot['post_workout_ready']})")
                 print(f"  Safety Margin: +{slot['margin_minutes']} min")
+                if "meal_advice" in slot:
+                    print(f"  🍽️ Meal / Digestion: {slot['meal_advice']}")
             else:
                 print(f"\n⚠️ No viable {args.workout_min}m window found on {target_d} without conflicting with commitments/commute.")
         else:

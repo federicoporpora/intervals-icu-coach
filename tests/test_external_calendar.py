@@ -223,6 +223,44 @@ END:VCALENDAR"""
             self.assertEqual(len(constraints), 1)
             self.assertIn("ARCHITETTURE", constraints[0]["description"])
 
+    def test_flexible_wake_up_standard(self):
+        # 1. Day with no morning events: should sleep in until 08:30
+        with patch.object(self.ecm, "get_events", return_value=[]):
+            sched = self.ecm.get_daily_schedule("2026-09-17")
+            self.assertEqual(sched["wake_up_time"], "08:30")
+            self.assertEqual(sched["routine_applied"], "standard_flexible_sleep_in")
+
+        # 2. Day with early morning event starting at 09:30: should wake up at 08:00
+        early_event = [{
+            "summary": "Riunione Mattina",
+            "start_dt": datetime(2026, 9, 17, 9, 30, tzinfo=self.ecm.tz),
+            "end_dt": datetime(2026, 9, 17, 10, 30, tzinfo=self.ecm.tz),
+            "all_day": False,
+            "category": "personal",
+            "commute_minutes": 15,
+            "calendar_name": "Personal",
+            "location": "",
+        }]
+        with patch.object(self.ecm, "get_events", return_value=early_event):
+            sched_early = self.ecm.get_daily_schedule("2026-09-17")
+            self.assertEqual(sched_early["wake_up_time"], "08:00")
+            self.assertEqual(sched_early["routine_applied"], "standard_early")
+
+    def test_hard_workout_meal_digestion_advice(self):
+        # On a free day (wake up 08:30), slot right after wake up should recommend PRE-BREAKFAST FASTED
+        with patch.object(self.ecm, "get_events", return_value=[]):
+            slot = self.ecm.find_optimal_training_slot(
+                target_date="2026-09-17",
+                workout_duration_min=60,
+                is_hard_workout=True,
+                preference="morning",
+            )
+            self.assertIsNotNone(slot)
+            self.assertEqual(slot["recommended_start"], "08:30")
+            self.assertEqual(slot["timing_type"], "pre_breakfast")
+            self.assertIn("PRE-BREAKFAST FASTED", slot["meal_advice"])
+            self.assertIn("120+ min", slot["meal_advice"])
+
 
 if __name__ == "__main__":
     unittest.main()
