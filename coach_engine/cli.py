@@ -311,6 +311,7 @@ def main():
             target_d = args.date or datetime.now(ecm.tz).date().isoformat()
             sched = ecm.get_daily_schedule(target_d, commute_override_min=args.commute_min, force_refresh=args.force_refresh)
             print(f"📅 Schedule Analysis for {sched['date']}:")
+            print(f"🛌 Sleep Routine: Wake-up at {sched.get('wake_up_time', '07:30')} (Bedtime: {sched.get('bedtime', '00:00')}, Routine: {sched.get('routine_applied', 'standard')})")
             if sched["has_all_day_block"]:
                 print("⚠️ ALL-DAY COMMITMENT / EXAM DETECTED: Full day blocked for training.")
             print(f"\nEvents ({len(sched['events'])}):")

@@ -103,6 +103,14 @@
       "logistics": {
         "shower_buffer_minutes": 35,
         "default_commute_minutes": 45
+      },
+      "sleep_and_routine": {
+        "bedtime": "00:00",
+        "wake_up_standard": "07:30",
+        "wake_up_afternoon_classes": "09:30",
+        "sleep_target_hours": 8.0,
+        "scheduling_inquiry_rule": "Always ask athlete directly if uncertain whether a personal commitment allows running or blocks the day",
+        "weekend_focus": "Scout / social activities; strictly respect weekend calendar commitments"
       }
     }
   },

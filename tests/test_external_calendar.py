@@ -153,11 +153,13 @@ END:VCALENDAR"""
 
             # Check busy blocks: 12:00-14:30 with 45m commute -> 11:15-15:15
             # and 15:00-18:00 with 45m commute -> 14:15-18:45
-            # Merged busy window is 11:15 - 18:45
+            self.assertEqual(sched["wake_up_time"], "09:30")
+            self.assertEqual(sched["routine_applied"], "afternoon_classes_sleep_in")
+
             free = sched["free_windows"]
             self.assertTrue(len(free) >= 2)
-            # Morning window from 06:00 to 11:15 (start of commute)
-            self.assertEqual(free[0]["start"], "06:00")
+            # Morning window from wake-up (09:30) to 11:15 (start of commute)
+            self.assertEqual(free[0]["start"], "09:30")
             self.assertEqual(free[0]["end"], "11:15")
             # Evening window from 18:45 (end of return commute) to 22:00
             self.assertEqual(free[1]["start"], "18:45")
@@ -183,12 +185,13 @@ END:VCALENDAR"""
 
         with patch.object(self.ecm, "get_events", return_value=events):
             # Event is 09:00 - 11:00 local time. Commute: 08:15 to 11:45
-            # Morning free: 06:00 - 08:15 (135 min)
+            # With wake_time_override "06:00": Morning free: 06:00 - 08:15 (135 min)
             slot = self.ecm.find_optimal_training_slot(
                 target_date="2026-09-16",
                 workout_duration_min=45,
                 shower_buffer_min=35,
                 preference="morning",
+                wake_time_override="06:00",
             )
             self.assertIsNotNone(slot)
             self.assertEqual(slot["recommended_start"], "06:00")

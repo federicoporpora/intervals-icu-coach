@@ -276,11 +276,13 @@ class ExternalCalendarManager:
         self,
         target_date: Union[str, date, datetime],
         commute_override_min: Optional[int] = None,
+        wake_time_override: Optional[str] = None,
         force_refresh: bool = False,
     ) -> Dict[str, Any]:
         """
         Analyzes a specific day's commitments, applies commute buffers,
         and computes all free time windows available for workouts.
+        Respects athlete sleep routine (bedtime 00:00, 09:30 wake-up on afternoon class days).
         """
         t_date = (
             target_date.date() if isinstance(target_date, datetime)
@@ -292,8 +294,37 @@ class ExternalCalendarManager:
         # Filter only events that fall on this day
         day_events = [e for e in day_events if e["start_dt"].date() == t_date or e["end_dt"].date() == t_date]
 
-        day_start = datetime.combine(t_date, dt_time(hour=6, minute=0), tzinfo=self.tz)  # Earliest morning 06:00
-        day_end = datetime.combine(t_date, dt_time(hour=22, minute=0), tzinfo=self.tz)   # Latest evening 22:00
+        # Determine wake-up time based on afternoon classes rule
+        profile_routine = {}
+        if self.config_path.exists():
+            try:
+                with open(self.config_path, "r", encoding="utf-8") as f:
+                    prof_data = json.load(f)
+                profile_routine = prof_data.get("preferences", {}).get("integrations", {}).get("sleep_and_routine", {})
+            except Exception:
+                pass
+
+        wake_std_str = profile_routine.get("wake_up_standard", "07:30")
+        wake_afternoon_str = profile_routine.get("wake_up_afternoon_classes", "09:30")
+
+        has_morning_events = any(not e.get("all_day") and e["start_dt"].hour < 12 for e in day_events)
+        has_afternoon_classes = any(e.get("category") == "lecture" and e["start_dt"].hour >= 12 for e in day_events)
+
+        if wake_time_override:
+            w_h, w_m = map(int, wake_time_override.split(":"))
+            wake_time = dt_time(hour=w_h, minute=w_m)
+            routine_reason = "override"
+        elif has_afternoon_classes and not has_morning_events:
+            w_h, w_m = map(int, wake_afternoon_str.split(":"))
+            wake_time = dt_time(hour=w_h, minute=w_m)
+            routine_reason = "afternoon_classes_sleep_in"
+        else:
+            w_h, w_m = map(int, wake_std_str.split(":"))
+            wake_time = dt_time(hour=w_h, minute=w_m)
+            routine_reason = "standard_schedule"
+
+        day_start = datetime.combine(t_date, wake_time, tzinfo=self.tz)
+        day_end = datetime.combine(t_date, dt_time(hour=22, minute=0), tzinfo=self.tz)
 
         has_all_day_block = any(e.get("all_day", False) or e.get("category") == "exam" for e in day_events)
 
@@ -365,6 +396,9 @@ class ExternalCalendarManager:
 
         return {
             "date": t_date.isoformat(),
+            "wake_up_time": wake_time.strftime("%H:%M"),
+            "bedtime": "00:00",
+            "routine_applied": routine_reason,
             "has_all_day_block": has_all_day_block,
             "events_count": len(day_events),
             "events": [
@@ -390,12 +424,13 @@ class ExternalCalendarManager:
         workout_duration_min: int,
         shower_buffer_min: int = 35,
         preference: str = "morning",
+        wake_time_override: Optional[str] = None,
     ) -> Optional[Dict[str, Any]]:
         """
         Finds the best available time slot on target_date that fits
         the workout duration plus the post-workout shower/recovery buffer.
         """
-        schedule = self.get_daily_schedule(target_date)
+        schedule = self.get_daily_schedule(target_date, wake_time_override=wake_time_override)
         if schedule.get("has_all_day_block"):
             return None
 
