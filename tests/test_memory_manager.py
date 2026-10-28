@@ -183,9 +183,14 @@ class TestMemoryManager(unittest.TestCase):
         self.assertEqual(pending[0]["id"], r1["id"])
         self.assertEqual(pending[0]["priority"], "high")
 
-        # 3. Complete reminder
+        # 3. Complete reminder using completion_notes
         completed = self.mm.complete_follow_up(r1["id"], completion_notes="Athlete reported RPE 8/10, felt strong")
         self.assertTrue(completed)
+
+        # 3b. Test completion using 'notes' alias kwarg
+        r_test = self.mm.add_follow_up_reminder("Test notes kwarg alias")
+        completed_alias = self.mm.complete_follow_up(r_test["id"], notes="Completed via notes alias")
+        self.assertTrue(completed_alias)
 
         # 4. Check pending again
         pending_after = self.mm.get_pending_follow_ups()

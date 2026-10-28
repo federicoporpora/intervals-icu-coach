@@ -11,6 +11,7 @@ from .workout_analyzer import (
 )
 from .plan_generator import WorkoutPlanGenerator
 from .state_manager import StateManager, get_state_manager
+from .memory_manager import MemoryManager, get_memory_manager
 from .external_calendar import ExternalCalendarManager, get_external_calendar_manager
 
 __all__ = [

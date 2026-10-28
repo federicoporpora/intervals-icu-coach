@@ -6,7 +6,7 @@ Supports running (Pace/HR/Zones) and cycling (Power/FTP/HR/Zones), workout templ
 and autonomic dynamic plan adaptations.
 """
 
-from typing import Dict, Any, List, Optional, Union
+from typing import Dict, Any, List, Optional, Union, Tuple
 from datetime import datetime, date, timedelta
 import re
 
@@ -23,17 +23,152 @@ class WorkoutPlanGenerator:
     ) -> str:
         """
         Formats an individual workout step.
-        Examples:
-          duration_or_dist: '10m', '1000m', '5km', '45s'
-          intensity: '65% HR', '95% PACE', '90-95% LTHR', '88-94% FTP', 'Z2'
-          label: 'Warmup', 'Threshold Cruise', 'Easy Spin'
+        Places label at the beginning of the step line so Intervals.icu populates step.text
+        for Suunto Guides / Garmin watch displays:
+          e.g. '- Riscaldamento 1km Z1 HR 5:50-6:10 min/km'
         """
-        step = f"- {duration_or_dist} {intensity}"
+        prefix = f"{label.strip()} " if label and label.strip() else ""
+        step = f"- {prefix}{duration_or_dist} {intensity}"
         if cadence_rpm:
             step += f" {cadence_rpm}rpm"
-        if label:
-            step += f" {label}"
         return step
+
+    @classmethod
+    def validate_workout_description(
+        cls,
+        description: str,
+        sport: str = "Run",
+    ) -> Tuple[bool, List[str]]:
+        """
+        Validates workout description against Intervals.icu structured workout syntax rules.
+        Detects:
+          - Hybrid/composite zones (e.g. Z1/Z2 HR, Z2-Z3) causing blank uncolored steps ('buchi bianchi').
+          - Distance with 'm' (e.g. 1000m, 400m) which Intervals.icu misinterprets as minutes.
+          - Inline repeats (e.g. - 4x 1km ...) instead of section header syntax.
+          - Steps missing intensity targets (HR zone, Pace, Power, or % target).
+        Returns:
+          (is_valid: bool, issues: List[str])
+        """
+        issues: List[str] = []
+        if not description or not description.strip():
+            return False, ["Workout description is empty."]
+
+        lines = description.splitlines()
+        for idx, line in enumerate(lines, start=1):
+            raw_line = line.strip()
+            if not raw_line:
+                continue
+
+            # Check 1: Inline repeat syntax (e.g. "- 5x 1km" or "- 4x 20s / 40s")
+            if re.match(r"^-\s*\d+\s*x\s+", raw_line, re.IGNORECASE) or re.search(r"\b\d+x\s+.*\s*/\s*", raw_line):
+                issues.append(
+                    f"Line {idx}: Inline repeat detected ('{raw_line}'). "
+                    "Intervals.icu requires repeat section headers on their own line (e.g., 'Main Set 5x') above steps."
+                )
+
+            # Check 2: Hybrid / composite zone tokens (e.g. Z1/Z2 HR, Z1-Z2, Z2/Z3, Zone 1/2)
+            hybrid_match = re.search(
+                r"\b(Z(?:one)?\s*[1-7]\s*[\/\-]\s*(?:Z(?:one)?\s*)?[1-7](?:\s*HR|\s*Pace|\s*Power)?)\b",
+                raw_line,
+                re.IGNORECASE,
+            )
+            if hybrid_match:
+                issues.append(
+                    f"Line {idx}: Invalid hybrid zone token '{hybrid_match.group(1)}' in step. "
+                    "Intervals.icu only parses single zone tokens (e.g. 'Z1 HR', 'Z2 HR') or explicit percentage ranges ('65-75% HR'). "
+                    "Hybrid zones result in uncolored white gaps in the workout graph."
+                )
+
+            # Check steps starting with '-'
+            if raw_line.startswith("-"):
+                # Check 3: Distance formatted with 'm' instead of 'km'
+                meter_match = re.search(r"(?:^|\s)(?:-\s*)?(\d{3,4})m\b", raw_line)
+                if meter_match:
+                    num = int(meter_match.group(1))
+                    if num >= 100:
+                        issues.append(
+                            f"Line {idx}: Suspected distance with 'm' ('{meter_match.group(0).strip()}'). "
+                            f"Intervals.icu parses 'm' as MINUTES ({num}m = {num} minutes). "
+                            f"Always use 'km' for distance (e.g., '{num/1000:g}km')."
+                        )
+
+                # Check 4: Step intensity target check
+                has_duration_or_dist = bool(
+                    re.search(r"\b\d+(\.\d+)?\s*(km|mi)\b", raw_line, re.IGNORECASE) or
+                    re.search(r"\b\d+\s*(m|s|h|min|sec)\b", raw_line, re.IGNORECASE)
+                )
+
+                if has_duration_or_dist:
+                    has_hr = bool(
+                        re.search(r"\bZ[1-7]\s*HR\b", raw_line, re.IGNORECASE) or
+                        re.search(r"\b\d+(?:-\d+)?%\s*(?:HR|LTHR|HRmax)\b", raw_line, re.IGNORECASE) or
+                        re.search(r"\b\d{2,3}(?:-\d{2,3})?\s*bpm\b", raw_line, re.IGNORECASE) or
+                        re.search(r"[<>]\s*\d{2,3}\s*bpm\b", raw_line, re.IGNORECASE)
+                    )
+                    has_pace = bool(
+                        re.search(r"\bZ[1-7]\s*Pace\b", raw_line, re.IGNORECASE) or
+                        re.search(r"\b\d+(?:-\d+)?%\s*PACE\b", raw_line, re.IGNORECASE) or
+                        re.search(r"\b\d+:\d{2}(?:-\d+:\d{2})?\s*min/km\b", raw_line, re.IGNORECASE) or
+                        re.search(r"\b\d+:\d{2}/km\b", raw_line, re.IGNORECASE)
+                    )
+                    has_power = bool(
+                        re.search(r"\bZ[1-7]\s*Power\b", raw_line, re.IGNORECASE) or
+                        re.search(r"\b\d+(?:-\d+)?%\s*FTP\b", raw_line, re.IGNORECASE) or
+                        re.search(r"\b\d+(?:-\d+)?\s*W\b", raw_line)
+                    )
+
+                    if not (has_hr or has_pace or has_power):
+                        issues.append(
+                            f"Line {idx}: Step '{raw_line}' has duration/distance but lacks an explicit intensity target "
+                            "(HR zone, Pace zone, Power, or % target). This causes Intervals.icu to render the step as an uncolored white gap."
+                        )
+
+        return len(issues) == 0, issues
+
+    @classmethod
+    def sanitize_workout_description(
+        cls,
+        description: str,
+    ) -> str:
+        """
+        Deterministically sanitizes common syntax defects in Intervals.icu workout descriptions:
+          - Converts hybrid zone tokens (e.g. 'Z1/Z2 HR' -> 'Z2 HR', 'Z2/Z3' -> 'Z2 HR')
+          - Converts 3-4 digit 'm' meters to 'km' (e.g. '1000m' -> '1km', '400m' -> '0.4km')
+        """
+        if not description:
+            return ""
+
+        sanitized_lines = []
+        for line in description.splitlines():
+            s = line
+
+            # 1. Resolve hybrid zone tokens:
+            def _replace_hybrid_zone(match):
+                z1 = int(match.group(1))
+                z2 = int(match.group(2))
+                suffix = match.group(3) or ""
+                chosen_zone = max(z1, z2) if z1 == 1 and z2 == 2 else min(z1, z2)
+                return f"Z{chosen_zone}{suffix}"
+
+            s = re.sub(
+                r"\bZ([1-7])\s*[\/\-]\s*Z?([1-7])(\s*HR|\s*Pace|\s*Power)?\b",
+                _replace_hybrid_zone,
+                s,
+                flags=re.IGNORECASE,
+            )
+
+            # 2. Fix 3-4 digit meters (1000m -> 1km, 400m -> 0.4km, 800m -> 0.8km, etc.)
+            def _replace_meters(match):
+                val = int(match.group(1))
+                km_val = val / 1000.0
+                return f"{km_val:g}km"
+
+            if s.strip().startswith("-") or "x\n" in description:
+                s = re.sub(r"\b([1-9]\d{2,3})m\b", _replace_meters, s)
+
+            sanitized_lines.append(s)
+
+        return "\n".join(sanitized_lines)
 
     @classmethod
     def create_easy_aerobic_run(
@@ -47,16 +182,18 @@ class WorkoutPlanGenerator:
     ) -> Dict[str, Any]:
         """Creates a continuous steady Zone 2 base run supporting distance-based or duration-based syntax."""
         if distance_km is not None:
-            main_km = max(1.0, round(distance_km - 1.5, 1))
+            cooldown_km = 1.0
+            warmup_km = 1.0
+            main_km = max(1.0, round(distance_km - (warmup_km + cooldown_km), 1))
             hr_str = target_hr or f"Z2 HR {target_hr_pct}% HR"
             pace_str = target_pace or "5:35-5:50 min/km"
             description = (
                 f"Warmup\n"
-                f"- 1km Z1 HR 5:50-6:10 min/km Riscaldamento (<145 bpm)\n\n"
+                f"- Riscaldamento {warmup_km}km Z1 HR 5:50-6:10 min/km\n\n"
                 f"Main Set\n"
-                f"- {main_km}km {hr_str} {pace_str} {zone_label}\n\n"
+                f"- {zone_label} {main_km}km {hr_str} {pace_str}\n\n"
                 f"Cooldown\n"
-                f"- 0.5km Z1 HR 6:00-6:20 min/km Defaticamento (<145 bpm)"
+                f"- Defaticamento rientro a casa {cooldown_km}km Z1 HR 6:00-6:30 min/km (<145 bpm)"
             )
             return {
                 "name": f"Corsa Facile Z2 (~{distance_km:.1f}k)",
@@ -125,15 +262,15 @@ class WorkoutPlanGenerator:
         """Creates a Lactate Threshold / Cruise Interval workout."""
         description = (
             f"Warmup\n"
-            f"- {warmup_km}km Z1 HR 5:50-6:10 min/km Riscaldamento Progressivo (<145 bpm)\n\n"
+            f"- Riscaldamento Progressivo {warmup_km}km Z1 HR 5:50-6:10 min/km (<145 bpm)\n\n"
             f"Allunghi 4x\n"
-            f"- 0.1km Z5 HR 3:45-3:55 min/km Allungo\n"
-            f"- 0.1km Z1 HR 6:00-6:30 min/km Souplesse\n\n"
+            f"- Allungo 0.1km Z5 HR 3:45-3:55 min/km\n"
+            f"- Souplesse 0.1km Z1 HR 6:00-6:30 min/km\n\n"
             f"Main Set {blocks}x\n"
-            f"- {block_dist_km}km {block_intensity} Ripetuta Soglia LT2 (177-188 bpm)\n"
-            f"- {recovery_dist_km}km Z1 HR 6:00-6:30 min/km Recupero Souplesse (<145 bpm)\n\n"
+            f"- Ripetuta Soglia LT2 {block_dist_km}km {block_intensity} (177-188 bpm)\n"
+            f"- Recupero Souplesse {recovery_dist_km}km Z1 HR 6:00-6:30 min/km (<145 bpm)\n\n"
             f"Cooldown\n"
-            f"- {cooldown_km}km Z1 HR 5:50-6:15 min/km Defaticamento (<145 bpm)"
+            f"- Defaticamento rientro a casa {cooldown_km}km Z1 HR 5:50-6:15 min/km (<145 bpm)"
         )
         return {
             "name": f"⚡ Soglia: {blocks}x{block_dist_km}km",
@@ -149,16 +286,16 @@ class WorkoutPlanGenerator:
         fast_finish_km: float = 2.0,
     ) -> Dict[str, Any]:
         """Creates an extended long run with a progression to Marathon / Moderate pace."""
-        base_km = total_distance_km - fast_finish_km - 2.0
+        base_km = total_distance_km - fast_finish_km - 2.5
         description = (
             f"Warmup\n"
-            f"- 1.5km Z1 HR 5:50-6:10 min/km Avvio Progressivo (<145 bpm)\n\n"
+            f"- Avvio Progressivo 1.5km Z1 HR 5:50-6:10 min/km (<145 bpm)\n\n"
             f"Steady Aerobic\n"
-            f"- {base_km}km Z2 HR 5:35-5:50 min/km Fondo Lento Base (146-164 bpm)\n\n"
+            f"- Fondo Lento Base {base_km}km Z2 HR 5:35-5:50 min/km (146-164 bpm)\n\n"
             f"Progression Finish\n"
-            f"- {fast_finish_km}km Z3 HR 4:55-5:10 min/km Finale Progressione Z3 (165-176 bpm)\n\n"
+            f"- Finale Progressione Z3 {fast_finish_km}km Z3 HR 4:55-5:10 min/km (165-176 bpm)\n\n"
             f"Cooldown\n"
-            f"- 0.5km Z1 HR 6:00-6:20 min/km Defaticamento (<145 bpm)"
+            f"- Defaticamento rientro a casa 1.0km Z1 HR 6:00-6:30 min/km (<145 bpm)"
         )
         return {
             "name": f"🏃 Lungo Progressivo (~{total_distance_km:.1f}k)",

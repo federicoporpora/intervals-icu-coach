@@ -219,7 +219,7 @@ END:VCALENDAR"""
             self.assertEqual(imported[0]["action"], "busy_window")
 
             # Check memory manager stored it
-            constraints = self.mm.get_active_calendar_constraints(for_date="2026-09-16")
+            constraints = self.mm.get_active_calendar_constraints(for_date="2026-09-16", as_of_date="2026-09-16")
             self.assertEqual(len(constraints), 1)
             self.assertIn("ARCHITETTURE", constraints[0]["description"])
 

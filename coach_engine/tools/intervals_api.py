@@ -285,6 +285,8 @@ class IntervalsAPIClient:
         self,
         event_payload: Dict[str, Any],
         athlete_id: Optional[str] = None,
+        validate_syntax: bool = True,
+        auto_sanitize: bool = True,
     ) -> Dict[str, Any]:
         """
         Pushes a planned workout to the Intervals.icu calendar.
@@ -295,7 +297,7 @@ class IntervalsAPIClient:
           - type: "Run" | "Ride" | "Swim" | "Row" | "Walk" | "Other"
           - name: "5x1k VO2max"
           - description: Structured text workout steps, e.g.:
-              "- 15m 65% HR Warmup\n- 5x 1000m 95% PACE / 2m 60% HR\n- 10m 65% HR Cool"
+              "- 15m 65% HR Warmup\nMain Set 5x\n- 1km 95% PACE Fast Rep\n- 2m 60% HR Recovery\n- 10m 65% HR Cool"
         """
         aid = athlete_id or self.athlete_id
         endpoint = f"athlete/{aid}/events"
@@ -304,18 +306,75 @@ class IntervalsAPIClient:
         if "category" not in event_payload:
             event_payload["category"] = "WORKOUT"
 
-        return self._request("POST", endpoint, json_data=event_payload)
+        if validate_syntax and event_payload.get("category") == "WORKOUT" and "description" in event_payload:
+            from .plan_generator import WorkoutPlanGenerator
+            desc = event_payload.get("description") or ""
+            is_valid, issues = WorkoutPlanGenerator.validate_workout_description(desc, sport=event_payload.get("type", "Run"))
+            if not is_valid:
+                if auto_sanitize:
+                    sanitized = WorkoutPlanGenerator.sanitize_workout_description(desc)
+                    s_valid, _ = WorkoutPlanGenerator.validate_workout_description(sanitized, sport=event_payload.get("type", "Run"))
+                    if s_valid:
+                        event_payload["description"] = sanitized
+                    else:
+                        raise IntervalsAPIError(f"Intervals.icu structured workout validation failed: {'; '.join(issues)}")
+                else:
+                    raise IntervalsAPIError(f"Intervals.icu structured workout validation failed: {'; '.join(issues)}")
+
+        resp = self._request("POST", endpoint, json_data=event_payload)
+        self._audit_workout_response(resp)
+        return resp
 
     def update_planned_workout(
         self,
         event_id: Union[str, int],
         event_payload: Dict[str, Any],
         athlete_id: Optional[str] = None,
+        validate_syntax: bool = True,
+        auto_sanitize: bool = True,
     ) -> Dict[str, Any]:
         """Updates or reschedules an existing planned workout."""
         aid = athlete_id or self.athlete_id
         endpoint = f"athlete/{aid}/events/{event_id}"
-        return self._request("PUT", endpoint, json_data=event_payload)
+
+        if validate_syntax and event_payload.get("category", "WORKOUT") == "WORKOUT" and "description" in event_payload:
+            from .plan_generator import WorkoutPlanGenerator
+            desc = event_payload.get("description") or ""
+            is_valid, issues = WorkoutPlanGenerator.validate_workout_description(desc, sport=event_payload.get("type", "Run"))
+            if not is_valid:
+                if auto_sanitize:
+                    sanitized = WorkoutPlanGenerator.sanitize_workout_description(desc)
+                    s_valid, _ = WorkoutPlanGenerator.validate_workout_description(sanitized, sport=event_payload.get("type", "Run"))
+                    if s_valid:
+                        event_payload["description"] = sanitized
+                    else:
+                        raise IntervalsAPIError(f"Intervals.icu structured workout validation failed: {'; '.join(issues)}")
+                else:
+                    raise IntervalsAPIError(f"Intervals.icu structured workout validation failed: {'; '.join(issues)}")
+
+        resp = self._request("PUT", endpoint, json_data=event_payload)
+        self._audit_workout_response(resp)
+        return resp
+
+    def _audit_workout_response(self, response: Any) -> None:
+        """Audits the response from Intervals.icu to detect unparsed steps, missing zones, or chart gaps."""
+        if not isinstance(response, dict):
+            return
+        workout_doc = response.get("workout_doc")
+        if not isinstance(workout_doc, dict):
+            return
+        steps = workout_doc.get("steps", [])
+        if not steps:
+            return
+        uncolored = []
+        for idx, step in enumerate(steps, start=1):
+            if not step.get("hr") and not step.get("pace") and not step.get("power"):
+                uncolored.append(f"Step {idx} ('{step.get('text', 'unnamed')}')")
+        if uncolored:
+            response["_uncolored_steps_warning"] = (
+                f"Intervals.icu chart warning: Uncolored steps without targets detected: {', '.join(uncolored)}. "
+                "These steps appear as blank/white gaps in the workout graph."
+            )
 
     def delete_planned_workout(
         self,

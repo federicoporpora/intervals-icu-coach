@@ -205,13 +205,72 @@ class TestPlanGenerator(unittest.TestCase):
         self.assertIn("50m", easy_run["name"])
         self.assertIn("68% HR", easy_run["description"])
 
-        vo2_workout = WorkoutPlanGenerator.create_vo2max_intervals(reps=5, rep_spec="1000m")
-        self.assertEqual(vo2_workout["name"], "5x1000m VO2max Intervals")
-        self.assertIn("5x\n- 1000m 95-100% PACE", vo2_workout["description"])
+        vo2_workout = WorkoutPlanGenerator.create_vo2max_intervals(reps=5, rep_spec="1km")
+        self.assertEqual(vo2_workout["name"], "5x1km VO2max Intervals")
+        self.assertIn("5x\n- 1km 95-100% PACE", vo2_workout["description"])
 
         cycling_ss = WorkoutPlanGenerator.create_sweet_spot_cycling(reps=3, rep_duration_min=15)
         self.assertEqual(cycling_ss["type"], "Ride")
         self.assertIn("88-94% FTP", cycling_ss["description"])
+
+    def test_workout_syntax_validation(self):
+        # 1. Valid workout
+        valid_desc = (
+            "Warmup\n"
+            "- 1km Z1 HR 5:50-6:10 min/km Riscaldamento (<145 bpm)\n\n"
+            "Main Set\n"
+            "- 3km Z2 HR 5:35-5:50 min/km Fondo Lento (146-160 bpm)\n\n"
+            "Cooldown\n"
+            "- 0.5km Z1 HR 6:00-6:20 min/km Defaticamento (<145 bpm)"
+        )
+        is_valid, issues = WorkoutPlanGenerator.validate_workout_description(valid_desc)
+        self.assertTrue(is_valid)
+        self.assertEqual(issues, [])
+
+        # 2. Hybrid zone error (e.g. Z1/Z2 HR -> white chart gap)
+        hybrid_desc = (
+            "Main Set\n"
+            "- 3km Z1/Z2 HR 5:45-6:05 min/km Corsa Agile Rigenerante"
+        )
+        is_valid, issues = WorkoutPlanGenerator.validate_workout_description(hybrid_desc)
+        self.assertFalse(is_valid)
+        self.assertTrue(any("hybrid zone" in iss.lower() for iss in issues))
+
+        # 3. Distance with 'm' (e.g. 1000m -> 1000 minutes!)
+        meter_desc = (
+            "Main Set 5x\n"
+            "- 1000m Z5 HR 3:55-4:05 min/km Ripetuta\n"
+            "- 2m Z1 HR Recupero"
+        )
+        is_valid, issues = WorkoutPlanGenerator.validate_workout_description(meter_desc)
+        self.assertFalse(is_valid)
+        self.assertTrue(any("parses 'm' as minutes" in iss.lower() for iss in issues))
+
+        # 4. Step lacking intensity target
+        notarget_desc = (
+            "Main Set\n"
+            "- 5km Corsa senza bersaglio di intensità"
+        )
+        is_valid, issues = WorkoutPlanGenerator.validate_workout_description(notarget_desc)
+        self.assertFalse(is_valid)
+        self.assertTrue(any("lacks an explicit intensity target" in iss.lower() for iss in issues))
+
+        # 5. Inline repeat error
+        inline_desc = (
+            "Main Set\n"
+            "- 5x 1km Z4 HR 4:20 min/km"
+        )
+        is_valid, issues = WorkoutPlanGenerator.validate_workout_description(inline_desc)
+        self.assertFalse(is_valid)
+        self.assertTrue(any("inline repeat" in iss.lower() for iss in issues))
+
+    def test_workout_syntax_sanitization(self):
+        hybrid_desc = "- 3km Z1/Z2 HR 5:45-6:05 min/km\n- 1000m Z5 HR 3:55 min/km"
+        sanitized = WorkoutPlanGenerator.sanitize_workout_description(hybrid_desc)
+        self.assertIn("Z2 HR", sanitized)
+        self.assertNotIn("Z1/Z2 HR", sanitized)
+        self.assertIn("1km", sanitized)
+        self.assertNotIn("1000m", sanitized)
 
     def test_dynamic_adaptation(self):
         planned = WorkoutPlanGenerator.create_vo2max_intervals(reps=5)
@@ -243,6 +302,48 @@ class TestIntervalsAPIClient(unittest.TestCase):
         client._write_cache("test_key", test_payload)
         cached = client._read_cache("test_key")
         self.assertEqual(cached, test_payload)
+
+    def test_workout_response_auditing(self):
+        client = IntervalsAPIClient(api_key="test_key_123", athlete_id="i999")
+        
+        # Test audit detects uncolored step
+        dummy_resp = {
+            "id": 123,
+            "workout_doc": {
+                "steps": [
+                    {"hr": {"units": "hr_zone", "value": 1}, "text": "Warmup"},
+                    {"text": "Main Set Uncolored"},  # Missing hr/pace/power
+                ]
+            }
+        }
+        client._audit_workout_response(dummy_resp)
+        self.assertIn("_uncolored_steps_warning", dummy_resp)
+        self.assertIn("Step 2", dummy_resp["_uncolored_steps_warning"])
+
+
+class TestCLICommands(unittest.TestCase):
+
+    def test_cli_list_reminders_and_show_window(self):
+        import io
+        from unittest.mock import patch
+        from coach_engine.cli import main
+
+        # Test memory list-reminders CLI
+        with patch("sys.argv", ["cli.py", "memory", "list-reminders"]):
+            buf = io.StringIO()
+            with patch("sys.stdout", buf):
+                main()
+            output = buf.getvalue()
+            self.assertTrue("pending" in output.lower() or "reminder" in output.lower())
+
+        # Test calendars show-window CLI alias
+        with patch("sys.argv", ["cli.py", "calendars", "show-window", "--date", "2026-10-02"]):
+            buf = io.StringIO()
+            with patch("sys.stdout", buf):
+                main()
+            output = buf.getvalue()
+            self.assertIn("Schedule Analysis", output)
+            self.assertIn("2026-10-02", output)
 
 
 if __name__ == "__main__":

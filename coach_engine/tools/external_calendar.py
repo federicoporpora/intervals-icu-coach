@@ -261,10 +261,12 @@ class ExternalCalendarManager:
                 # Keep other calendars working if one feed fails
                 continue
 
-        # Filter by date range
+        # Filter by date range (half-open interval [range_start, range_end))
+        range_start = datetime.combine(s_date, dt_time.min, tzinfo=self.tz)
+        range_end = datetime.combine(e_date + timedelta(days=1), dt_time.min, tzinfo=self.tz)
         filtered = [
             e for e in all_events
-            if s_date <= e["start_dt"].date() <= e_date or s_date <= e["end_dt"].date() <= e_date
+            if e["start_dt"] < range_end and e["end_dt"] > range_start
         ]
         filtered.sort(key=lambda x: x["start_dt"])
         return filtered
@@ -291,8 +293,6 @@ class ExternalCalendarManager:
         )
 
         day_events = self.get_events(t_date, t_date, force_refresh=force_refresh)
-        # Filter only events that fall on this day
-        day_events = [e for e in day_events if e["start_dt"].date() == t_date or e["end_dt"].date() == t_date]
 
         # Determine wake-up time based on afternoon classes rule
         profile_routine = {}
@@ -430,7 +430,7 @@ class ExternalCalendarManager:
         target_date: Union[str, date, datetime],
         workout_duration_min: int,
         shower_buffer_min: int = 35,
-        preference: str = "morning",
+        preference: Optional[str] = None,
         wake_time_override: Optional[str] = None,
         is_hard_workout: bool = False,
         prefer_pre_meal: bool = True,
@@ -440,6 +440,18 @@ class ExternalCalendarManager:
         the workout duration plus the post-workout shower/recovery buffer.
         Respects athlete meal digestion rules (>= 2h post-meal, pre-meal preferred for hard workouts).
         """
+        if preference is None:
+            # Auto-resolve from athlete profile and day of week
+            try:
+                t_str = str(target_date)[:10]
+                t_dt = datetime.strptime(t_str, "%Y-%m-%d")
+                if t_dt.weekday() == 5:  # Saturday -> morning
+                    preference = "morning"
+                else:  # Weekdays -> evening pre-dinner
+                    preference = "evening"
+            except Exception:
+                preference = "evening"
+
         schedule = self.get_daily_schedule(target_date, wake_time_override=wake_time_override)
         if schedule.get("has_all_day_block"):
             return None

@@ -533,8 +533,10 @@ class MemoryManager:
         self,
         reminder_id: str,
         completion_notes: Optional[str] = None,
+        notes: Optional[str] = None,
     ) -> bool:
         """Marks a follow-up reminder as completed with timestamp and notes."""
+        effective_notes = completion_notes if completion_notes is not None else notes
         memory = self.get_memory()
         reminders = memory.get("short_term", {}).get("follow_ups_and_reminders", [])
         found = False
@@ -543,7 +545,7 @@ class MemoryManager:
             if r.get("id") == reminder_id:
                 r["status"] = "completed"
                 r["completed_at"] = self.current_iso_timestamp()
-                r["completion_notes"] = completion_notes.strip() if completion_notes else None
+                r["completion_notes"] = effective_notes.strip() if effective_notes else None
                 found = True
                 break
 

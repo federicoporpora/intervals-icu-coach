@@ -79,6 +79,7 @@ def main():
     mem_subparsers = mem_parser.add_subparsers(dest="mem_action", help="Memory actions")
 
     mem_subparsers.add_parser("list", help="List all long-term and short-term memories")
+    mem_subparsers.add_parser("list-reminders", help="List active pending follow-up reminders compactly")
     mem_subparsers.add_parser("prompt-context", help="Output formatted memory markdown for agent context")
     mem_subparsers.add_parser("prune", help="Prune expired constraints and temporary statuses")
 
@@ -125,12 +126,13 @@ def main():
     cal_sync_parser.add_argument("--days", type=int, default=30, help="Days ahead to sync (default: 30)")
     cal_sync_parser.add_argument("--force-refresh", action="store_true", help="Bypass cache and force HTTP fetch")
 
-    cal_sched_parser = cal_subparsers.add_parser("schedule", help="Inspect daily commitments, commute buffers, and training windows")
-    cal_sched_parser.add_argument("--date", help="Target date (YYYY-MM-DD, defaults to today)")
-    cal_sched_parser.add_argument("--workout-min", type=int, default=45, help="Estimated workout duration in minutes")
-    cal_sched_parser.add_argument("--commute-min", type=int, help="Override commute buffer in minutes")
-    cal_sched_parser.add_argument("--hard", action="store_true", help="Flag if the workout is a hard quality session (enforces 2h+ meal digestion)")
-    cal_sched_parser.add_argument("--force-refresh", action="store_true", help="Bypass cache and force HTTP fetch")
+    for cal_cmd in ["schedule", "show-window"]:
+        cal_sched_parser = cal_subparsers.add_parser(cal_cmd, help="Inspect daily commitments, commute buffers, and training windows")
+        cal_sched_parser.add_argument("--date", help="Target date (YYYY-MM-DD, defaults to today)")
+        cal_sched_parser.add_argument("--workout-min", type=int, default=45, help="Estimated workout duration in minutes")
+        cal_sched_parser.add_argument("--commute-min", type=int, help="Override commute buffer in minutes")
+        cal_sched_parser.add_argument("--hard", action="store_true", help="Flag if the workout is a hard quality session (enforces 2h+ meal digestion)")
+        cal_sched_parser.add_argument("--force-refresh", action="store_true", help="Bypass cache and force HTTP fetch")
 
 
     args = parser.parse_args()
@@ -222,6 +224,15 @@ def main():
             mem = mm.get_memory()
             print(format_json(mem))
 
+        elif args.mem_action == "list-reminders":
+            reminders = mm.get_pending_follow_ups()
+            if not reminders:
+                print("No pending follow-up reminders.")
+            else:
+                print(f"Pending Follow-Up Reminders ({len(reminders)}):")
+                for r in reminders:
+                    print(f" - [{r.get('id')}] {r.get('description')} (Priority: {r.get('priority', 'normal')})")
+
         elif args.mem_action == "prompt-context":
             ctx = mm.format_memory_summary_for_prompt()
             print(ctx)
@@ -308,7 +319,7 @@ def main():
             imported = ecm.sync_to_memory_manager(mm, days_ahead=args.days, force_refresh=args.force_refresh)
             print(f"✅ Synchronized {len(imported)} external calendar events to Coach Memory (next {args.days} days).")
 
-        elif args.cal_action == "schedule":
+        elif args.cal_action in ["schedule", "show-window"]:
             target_d = args.date or datetime.now(ecm.tz).date().isoformat()
             sched = ecm.get_daily_schedule(target_d, commute_override_min=args.commute_min, force_refresh=args.force_refresh)
             print(f"📅 Schedule Analysis for {sched['date']}:")
